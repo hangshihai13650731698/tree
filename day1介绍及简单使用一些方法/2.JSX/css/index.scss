@@ -1,0 +1,5 @@
+$color:red;//提前声明一个属性
+// JSX（scss tx ...等都是预编语言）
+p{
+    color: $color;
+}
