@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+
+</body>
+
+</html>
+<script>
+    function a() {//父函数
+        var b = 1
+
+        function c() {//子函数：闭包
+            console.log(b)
+            return b
+        }
+        return c;
+    }
+    // 函数里面包着函数，把函数里面的值抛出去使用
+        // 函数类似一个虫洞，突破函数的作用域，直接进去获取该b的值
+        // 没有垃圾回收机制
+    var fn=a();
+    fn();
+    console.log(a())
+</script>
