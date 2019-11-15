@@ -1,0 +1,3 @@
+<template name="Childa">
+    <div>儿子组件1</div>
+</template>
