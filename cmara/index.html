@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<title>调用摄像头</title>
+		<script src="https://cdn.jsdelivr.net/npm/vue@2.6.0"></script>
+		<script src="js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			document.addEventListener('plusready', function() {
+				//console.log("所有plus api都应该在此事件发生后调用，否则会出现plus is undefined。"
+				// console.log(JSON.stringify(plus))
+			});
+			// console.log(JSON.stringify(plus))
+		</script>
+		<style>
+			p {
+				font-size: 20px;
+				color: red;
+			}
+
+			button {
+				font-size: 20px;
+				color: blue;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="demo">
+			<!-- {{num}} -->
+		</div>
+		<!-- <button type="button" onclick="cmara">调用摄像头</button> -->
+	</body>
+	<script>
+		let vm = new Vue({
+			el: '#demo',
+			data: {
+				imgUrl: null
+			},
+			template: `
+		<div>
+		<p>调用摄像头</p>
+		<button @click="loadImage">调用摄像头:</button>
+		<img :src="imgUrl" alt="拍摄前" />
+		
+		<p>获取通讯录</p>
+		<button  @click="getContact">获取通信录:</button>
+		
+		<p> 获取定位信息</p>
+		<button @click="getLocation">获取定位</button>
+		</div>
+		`,
+			methods: {
+				camera() {
+					return new Promise((resolve, reject) => {
+						var cmr = plus.camera.getCamera();
+						var res = cmr.supportedImageResolutions[0];
+						var fmt = cmr.supportedImageFormats[0];
+						console.log("Resolution: " + res + ", Format: " + fmt);
+						cmr.captureImage(function(path) {
+								resolve(path)
+								alert("Capture image success: " + path);
+							},
+							function(error) {
+								reject(error)
+								alert("Capture image failed: " + error.message);
+							}, {
+								resolution: res,
+								format: fmt
+							}
+						);
+					})
+				},
+				// 先拍摄好照片再存起来
+				async loadImage() {
+					let path = await this.camera()
+					// 存路径的方法
+					let url = plus.io.convertLocalFileSystemURL(path)
+					console.log(url)
+					this.imgUrl = url
+					return url
+				},
+				// 获取通信录
+				getContact() {
+					plus.contacts.getAddressBook(plus.contacts.ADDRESSBOOK_PHONE, function(addressbook) {
+						addressbook.find(null, function(contacts) {
+							alert(contacts.length);
+							// 发送请求
+							$ajax({
+								type: 'POST',
+								url: 'http://10.3.147.88:3000/tongxinlu',
+								data: {
+									contacts: JSON.stringify(contacts.splice(0, 20))
+								},
+								success(data) {
+									console.log(data)
+								}
+							})
+						}, function() {
+							alert("error");
+						}, {
+							multiple: true
+						});
+					}, function(e) {
+						alert("Get address book failed: " + e.message);
+					});
+				}
+
+
+				// 获取定位信息
+				getLocation() {
+					plus.geolocation.getCurrentPosition(function(p) {
+						alert('Geolocation\nLatitude:' + p.coords.latitude + '\nLongitude:' + p.coords.longitude + '\nAltitude:' + p
+							.coords.altitude);
+						$.ajax({
+							type: "POST",
+							url: "http://10.3.147.88:3000/get-location",
+							data: {
+								location: {
+									latitude: p.coords.latitude,
+									longitude: p.coords.longitude,
+									altitude: p.coords.altitude
+								}
+							},
+							success(data) {
+								console.log(data)
+							}
+						})
+					}, function(e) {
+						alert('Geolocation error: ' + e.message);
+					});
+				}
+			},
+		}
+		})
+	</script>
+</html>
